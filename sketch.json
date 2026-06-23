@@ -1,6 +1,6 @@
 {
   "cpu": {
-    "fqbn": "arduino:samd:mkrwifi1010",
+    "fqbn": "",
     "name": "",
     "type": "serial"
   },
