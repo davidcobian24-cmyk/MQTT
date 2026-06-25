@@ -1,58 +1,79 @@
-:Author: davidcobian23
-:Email:
-:Date: 26/03/2026
-:Revision: version#
-:License: Public Domain
+# MQTT IIoT Communication & QoS Analysis
 
-= Project: {Project}
+A publish/subscribe MQTT system built to transmit live sensor data between two Arduino MKR WiFi 1010 boards through a Mosquitto broker, with a focus on measuring and comparing latency across all three QoS levels.
 
-Describe your project
+## Overview
 
-== Step 1: Installation
-Please describe the steps to install this project.
+This project explores the reliability/latency tradeoff inherent in MQTT's three Quality of Service levels, a tradeoff that matters in real IIoT deployments where message delivery guarantees come at the cost of speed.
 
-For example:
+Two Arduino MKR WiFi 1010 boards communicate through a Mosquitto broker, one publishing live temperature, humidity, and pressure readings and the other subscribing and logging receipt timestamps. NTP clock synchronization across both devices enables accurate end-to-end latency measurement. Over 150 samples were collected per QoS level.
 
-1. Open this file
-2. Edit as you like
-3. Release to the World!
-
-== Step 2: Assemble the circuit
-
-Assemble the circuit following the diagram layout.png attached to the sketch
-
-== Step 3: Load the code
-
-Upload the code contained in this sketch on to your board
-
-=== Folder structure
-
-....
- sketch123                => Arduino sketch folder
-  ├── sketch123.ino       => main Arduino file
-  ├── schematics.png      => (optional) an image of the required schematics
-  ├── layout.png          => (optional) an image of the layout
-  └── ReadMe.adoc         => this file
-....
-
-=== License
-This project is released under a {License} License.
-
-=== Contributing
-To contribute to this project please contact: 
-
-=== BOM
-Add the bill of the materials you need for this project.
-
-|===
-| ID | Part name      | Part number | Quantity
-| R1 | 10k Resistor   | 1234-abcd   | 10       
-| L1 | Red LED        | 2345-asdf   | 5        
-| A1 | Arduino Zero   | ABX00066    | 1        
-|===
+## Key Results
 
 
-=== Help
-This document is written in the _AsciiDoc_ format, a markup language to describe documents. 
-If you need help you can search the http://www.methods.co.nz/asciidoc[AsciiDoc homepage]
-or consult the http://powerman.name/doc/asciidoc[AsciiDoc cheatsheet]
+QoS 0 | At most once (fire & forget) | 1,053 ms | 0% |
+QoS 1 | At least once (acknowledged) | ~1,130 ms | 0% |
+QoS 2 | Exactly once (4-way handshake) | 1,222 ms | 0% |
+
+- ~16% latency increase from QoS 0 to QoS 2
+- Zero message loss across all three levels in this controlled environment
+- Results confirm that QoS 2's delivery guarantee comes with measurable overhead — relevant when selecting QoS for latency-sensitive IIoT applications
+
+
+## Hardware
+
+Arduino MKR WiFi 1010 (x2)
+BME Sensor (Temp/Humidity/Pressure)
+
+
+## Software & Tools
+
+Arduino IDE
+Mosquitto
+NTP
+
+
+## How It Works
+
+### Publisher (Board 1)
+1. Connects to Wi-Fi and syncs time via NTP
+2. Reads temperature, humidity, and pressure from the onboard/attached sensor
+3. Publishes sensor payload to the Mosquitto broker with a timestamp embedded in the message
+4. Repeats at a fixed interval across all three QoS levels (tested separately)
+
+### Subscriber (Board 2)
+1. Connects to Wi-Fi and syncs time via NTP (same NTP server as publisher)
+2. Subscribes to the sensor topic on the Mosquitto broker
+3. On message receipt, records the local NTP timestamp
+4. Latency = receive timestamp − publish timestamp (embedded in payload)
+
+### Data Collection
+- 150+ samples collected per QoS level
+- Results logged and exported for analysis
+- Dashboard built to visualize both live sensor data and latency distributions
+
+
+## QoS Level Breakdown
+
+QoS 0 — At Most Once 
+Publisher fires the message with no acknowledgment. Fastest, but no delivery guarantee. In this test: lowest latency, no loss observed.
+
+QoS 1 — At Least Once  
+Broker acknowledges receipt. Message may be delivered more than once if the ack is lost. Moderate latency increase over QoS 0.
+
+QoS 2 — Exactly Once
+Four-way handshake ensures the message is delivered exactly once. Highest overhead, highest latency. Appropriate for critical control or billing data where duplicates are unacceptable.
+
+
+## Takeaways for IIoT Design
+
+- In a low-noise local network, all three QoS levels achieved 0% message loss — the tradeoff shows up in latency, not reliability, under these conditions
+- For high-frequency sensor streaming where occasional loss is acceptable, QoS 0 minimizes overhead
+- For critical process events (alarms, setpoint changes, traceability triggers), QoS 2 ensures exactly-once delivery at the cost of ~170ms additional latency
+- NTP-based synchronization is a practical approach for latency benchmarking on constrained embedded devices
+
+Project Context
+
+Institution: University of Northern Iowa, Cedar Falls, IA  
+Timeline: March 2026 – May 2026  
+Course Context: IIoT / Industrial Communications
