@@ -2,18 +2,21 @@
 
 A publish/subscribe MQTT system built to transmit live sensor data between two Arduino MKR WiFi 1010 boards through a Mosquitto broker, with a focus on measuring and comparing latency across all three QoS levels.
 
+
 ## Overview
 
-This project explores the reliability/latency tradeoff inherent in MQTT's three Quality of Service levels, a tradeoff that matters in real IIoT deployments where message delivery guarantees come at the cost of speed.
+This project explores the reliability/latency tradeoff inherent in MQTT's three Quality of Service levels — a tradeoff that matters in real IIoT deployments where message delivery guarantees come at the cost of speed.
 
 Two Arduino MKR WiFi 1010 boards communicate through a Mosquitto broker, one publishing live temperature, humidity, and pressure readings and the other subscribing and logging receipt timestamps. NTP clock synchronization across both devices enables accurate end-to-end latency measurement. Over 150 samples were collected per QoS level.
 
+
 ## Key Results
 
+- QoS Level - Delivery Guarantee - Avg Latency - Message Loss -
 
-QoS 0 | At most once (fire & forget) | 1,053 ms | 0% |
-QoS 1 | At least once (acknowledged) | ~1,130 ms | 0% |
-QoS 2 | Exactly once (4-way handshake) | 1,222 ms | 0% |
+- QoS 0 - At most once (fire & forget) - 1,053 ms - 0% -
+- QoS 1 - At least once (acknowledged) - ~1,130 ms - 0% -
+- QoS 2 - Exactly once (4-way handshake) - 1,222 ms - 0% -
 
 - ~16% latency increase from QoS 0 to QoS 2
 - Zero message loss across all three levels in this controlled environment
@@ -22,22 +25,26 @@ QoS 2 | Exactly once (4-way handshake) | 1,222 ms | 0% |
 
 ## Hardware
 
-Arduino MKR WiFi 1010 (x2)
-BME Sensor (Temp/Humidity/Pressure)
+- Component - Role -
+
+- Arduino MKR WiFi 1010 (x2) - Publisher and Subscriber nodes -
+- Sensor (Temp/Humidity/Pressure) - Live data source on publisher -
+- Local network / Wi-Fi - Transport layer -
 
 
 ## Software & Tools
 
-Arduino IDE
-Mosquitto
-NTP
+- Arduino IDE - Firmware development for both boards -
+- Mosquitto - MQTT broker -
+- NTP - Clock synchronization across devices for accurate latency measurement -
+- Dashboard - Sensor data and latency visualization -
 
 
 ## How It Works
 
 ### Publisher (Board 1)
 1. Connects to Wi-Fi and syncs time via NTP
-2. Reads temperature, humidity, and pressure from the onboard/attached sensor
+2. Reads temperature, humidity, and pressure from the attached sensor
 3. Publishes sensor payload to the Mosquitto broker with a timestamp embedded in the message
 4. Repeats at a fixed interval across all three QoS levels (tested separately)
 
@@ -55,13 +62,13 @@ NTP
 
 ## QoS Level Breakdown
 
-QoS 0 — At Most Once 
+QoS 0 — At Most Once  
 Publisher fires the message with no acknowledgment. Fastest, but no delivery guarantee. In this test: lowest latency, no loss observed.
 
 QoS 1 — At Least Once  
 Broker acknowledges receipt. Message may be delivered more than once if the ack is lost. Moderate latency increase over QoS 0.
 
-QoS 2 — Exactly Once
+QoS 2 — Exactly Once  
 Four-way handshake ensures the message is delivered exactly once. Highest overhead, highest latency. Appropriate for critical control or billing data where duplicates are unacceptable.
 
 
@@ -72,7 +79,8 @@ Four-way handshake ensures the message is delivered exactly once. Highest overhe
 - For critical process events (alarms, setpoint changes, traceability triggers), QoS 2 ensures exactly-once delivery at the cost of ~170ms additional latency
 - NTP-based synchronization is a practical approach for latency benchmarking on constrained embedded devices
 
-Project Context
+
+## Project Context
 
 Institution: University of Northern Iowa, Cedar Falls, IA  
 Timeline: March 2026 – May 2026  
